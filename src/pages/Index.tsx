@@ -1,16 +1,50 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import { FoodStoreContext } from '@/lib/foodStore';
+import { sampleFoodItems, sampleDistributions, sampleStats } from '@/lib/sampleData';
+import { FoodItem, Distribution, UserRole } from '@/lib/types';
+import Navbar from '@/components/Navbar';
+import DonorPage from '@/pages/DonorPage';
+import VolunteerPage from '@/pages/VolunteerPage';
+import ReceiverPage from '@/pages/ReceiverPage';
+import AdminPage from '@/pages/AdminPage';
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+export default function Index() {
+  const [currentRole, setCurrentRole] = useState<UserRole>('admin');
+  const [foodItems, setFoodItems] = useState<FoodItem[]>([...sampleFoodItems]);
+  const [distributions, setDistributions] = useState<Distribution[]>([...sampleDistributions]);
+
+  const store = {
+    foodItems,
+    distributions,
+    stats: sampleStats,
+    currentRole,
+    setCurrentRole,
+    addFoodItem: (item: FoodItem) => setFoodItems(prev => [item, ...prev]),
+    updateFoodItem: (id: string, updates: Partial<FoodItem>) =>
+      setFoodItems(prev => prev.map(f => f.id === id ? { ...f, ...updates } : f)),
+    addDistribution: (dist: Distribution) => setDistributions(prev => [dist, ...prev]),
+    updateDistribution: (id: string, updates: Partial<Distribution>) =>
+      setDistributions(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d)),
+  };
+
+  const pages: Record<UserRole, React.ReactNode> = {
+    donor: <DonorPage />,
+    volunteer: <VolunteerPage />,
+    receiver: <ReceiverPage />,
+    admin: <AdminPage />,
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
-    </div>
+    <FoodStoreContext.Provider value={store}>
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="container mx-auto px-4 py-6 max-w-6xl">
+          {pages[currentRole]}
+        </main>
+        <footer className="border-t border-border py-4 text-center text-xs text-muted-foreground">
+          Smart Food Redistribution System — Aligned with SDG 2, 12 & 13
+        </footer>
+      </div>
+    </FoodStoreContext.Provider>
   );
-};
-
-const Index = PlaceholderIndex;
-
-export default Index;
+}
