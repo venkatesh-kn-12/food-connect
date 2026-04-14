@@ -1,6 +1,6 @@
-import { useFoodStore } from '@/lib/foodStore';
-import { UserRole } from '@/lib/types';
-import { Leaf, Truck, Heart, Shield, Menu, X } from 'lucide-react';
+import { useFoodStore, UserRole } from '@/lib/foodStore';
+import { useAuth } from '@/hooks/useAuth';
+import { Leaf, Truck, Heart, Shield, Menu, X, LogOut } from 'lucide-react';
 import { useState } from 'react';
 
 const roleConfig: Record<UserRole, { label: string; icon: React.ReactNode }> = {
@@ -12,6 +12,7 @@ const roleConfig: Record<UserRole, { label: string; icon: React.ReactNode }> = {
 
 export default function Navbar() {
   const { currentRole, setCurrentRole } = useFoodStore();
+  const { user, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -24,7 +25,6 @@ export default function Navbar() {
           <span className="font-bold text-lg text-foreground">SFRS</span>
         </div>
 
-        {/* Desktop role switcher */}
         <div className="hidden md:flex items-center gap-1 bg-muted rounded-lg p-1">
           {(Object.keys(roleConfig) as UserRole[]).map((role) => (
             <button
@@ -42,13 +42,18 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* Mobile toggle */}
+        <div className="hidden md:flex items-center gap-3">
+          <span className="text-xs text-muted-foreground">{user?.email}</span>
+          <button onClick={() => signOut()} className="text-muted-foreground hover:text-foreground transition">
+            <LogOut className="w-4 h-4" />
+          </button>
+        </div>
+
         <button className="md:hidden" onClick={() => setMenuOpen(!menuOpen)}>
           {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
 
-      {/* Mobile menu */}
       {menuOpen && (
         <div className="md:hidden border-t border-border px-4 py-2 bg-card space-y-1">
           {(Object.keys(roleConfig) as UserRole[]).map((role) => (
@@ -65,6 +70,10 @@ export default function Navbar() {
               {roleConfig[role].label}
             </button>
           ))}
+          <button onClick={() => signOut()}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted">
+            <LogOut className="w-4 h-4" /> Sign Out
+          </button>
         </div>
       )}
     </nav>
