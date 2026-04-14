@@ -11,7 +11,10 @@
  * storage condition, temperature, and safety risk
  */
 
-import { FoodCategory, FoodType } from './types';
+import { Enums } from '@/integrations/supabase/types';
+
+type FoodCategory = Enums<'food_category'>;
+type FoodType = Enums<'food_type'>;
 
 interface SegregationInput {
   foodType: FoodType;

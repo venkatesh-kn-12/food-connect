@@ -5,10 +5,14 @@ import { motion } from 'framer-motion';
 import { Users, Truck, Heart, Leaf, Zap, BarChart3, ShieldCheck, Recycle } from 'lucide-react';
 
 export default function AdminPage() {
-  const { stats, foodItems, distributions } = useFoodStore();
+  const { foodItems, distributions } = useFoodStore();
+
+  const totalQuantity = foodItems.reduce((s, f) => s + f.quantity, 0);
+  const humanItems = foodItems.filter(f => f.category === 'human-consumption');
+  const peopleFed = humanItems.filter(f => f.status === 'delivered' || f.status === 'completed').reduce((s, f) => s + f.quantity, 0);
 
   const categoryBreakdown = {
-    human: foodItems.filter(f => f.category === 'human-consumption').length,
+    human: humanItems.length,
     animal: foodItems.filter(f => f.category === 'animal-feed').length,
     biogas: foodItems.filter(f => f.category === 'biogas').length,
     compost: foodItems.filter(f => f.category === 'compost').length,
@@ -21,23 +25,20 @@ export default function AdminPage() {
         <p className="text-muted-foreground text-sm">System overview & analytics</p>
       </div>
 
-      {/* Primary stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard title="Food Collected" value={`${stats.totalFoodCollected} kg`} icon={<BarChart3 className="w-5 h-5 text-primary" />} />
-        <StatsCard title="People Fed" value={stats.peopleFed} icon={<Heart className="w-5 h-5 text-destructive" />} accent="bg-destructive/10" description="Meals served" />
-        <StatsCard title="Animals Fed" value={stats.animalsFed} icon={<span className="text-lg">🐄</span>} accent="bg-warning/10" />
-        <StatsCard title="CO₂ Reduced" value={`${stats.co2Reduced} kg`} icon={<Leaf className="w-5 h-5 text-primary" />} description="Emissions prevented" />
+        <StatsCard title="Total Servings" value={totalQuantity} icon={<BarChart3 className="w-5 h-5 text-primary" />} />
+        <StatsCard title="People Fed" value={peopleFed} icon={<Heart className="w-5 h-5 text-destructive" />} accent="bg-destructive/10" description="Meals served" />
+        <StatsCard title="Animals Fed" value={categoryBreakdown.animal * 5} icon={<span className="text-lg">🐄</span>} accent="bg-warning/10" />
+        <StatsCard title="CO₂ Reduced" value={`${Math.round(totalQuantity * 0.4)} kg`} icon={<Leaf className="w-5 h-5 text-primary" />} description="Emissions prevented" />
       </div>
 
-      {/* Secondary stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard title="Biogas Produced" value={`${stats.biogasProduced} kg`} icon={<Zap className="w-5 h-5 text-biogas" />} accent="bg-biogas/10" />
-        <StatsCard title="Active Donors" value={stats.activeDonors} icon={<Users className="w-5 h-5 text-primary" />} />
-        <StatsCard title="Active Volunteers" value={stats.activeVolunteers} icon={<Truck className="w-5 h-5 text-info" />} accent="bg-info/10" />
-        <StatsCard title="Active Receivers" value={stats.activeReceivers} icon={<ShieldCheck className="w-5 h-5 text-success" />} accent="bg-success/10" />
+        <StatsCard title="Biogas Produced" value={`${categoryBreakdown.biogas * 2} kg`} icon={<Zap className="w-5 h-5 text-biogas" />} accent="bg-biogas/10" />
+        <StatsCard title="Food Items" value={foodItems.length} icon={<Users className="w-5 h-5 text-primary" />} />
+        <StatsCard title="Distributions" value={distributions.length} icon={<Truck className="w-5 h-5 text-info" />} accent="bg-info/10" />
+        <StatsCard title="Delivered" value={distributions.filter(d => d.status === 'delivered').length} icon={<ShieldCheck className="w-5 h-5 text-success" />} accent="bg-success/10" />
       </div>
 
-      {/* Category breakdown */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
         className="bg-card rounded-xl p-6 shadow-card border border-border">
         <h2 className="font-semibold text-lg text-foreground mb-4 flex items-center gap-2">
@@ -59,7 +60,6 @@ export default function AdminPage() {
         </div>
       </motion.div>
 
-      {/* Recent activity */}
       <div className="bg-card rounded-xl p-6 shadow-card border border-border">
         <h2 className="font-semibold text-lg text-foreground mb-4">Recent Food Items</h2>
         <div className="overflow-x-auto">
@@ -77,17 +77,17 @@ export default function AdminPage() {
             <tbody>
               {foodItems.map(item => (
                 <tr key={item.id} className="border-b border-border/50">
-                  <td className="py-3 font-medium text-foreground">{item.foodName}</td>
-                  <td className="py-3 text-muted-foreground">{item.donorName}</td>
+                  <td className="py-3 font-medium text-foreground">{item.food_name}</td>
+                  <td className="py-3 text-muted-foreground">{item.donor_name}</td>
                   <td className="py-3 text-muted-foreground">{item.quantity}</td>
                   <td className="py-3"><CategoryBadge category={item.category} /></td>
                   <td className="py-3"><StatusBadge status={item.status} /></td>
                   <td className="py-3">
                     <div className="flex items-center gap-2">
                       <div className="w-16 h-2 rounded-full bg-muted overflow-hidden">
-                        <div className="h-full rounded-full bg-primary" style={{ width: `${item.safetyScore}%` }} />
+                        <div className="h-full rounded-full bg-primary" style={{ width: `${item.safety_score}%` }} />
                       </div>
-                      <span className="text-xs text-muted-foreground">{item.safetyScore}</span>
+                      <span className="text-xs text-muted-foreground">{item.safety_score}</span>
                     </div>
                   </td>
                 </tr>
@@ -97,7 +97,6 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* SDG alignment */}
       <div className="bg-card rounded-xl p-6 shadow-card border border-border">
         <h2 className="font-semibold text-lg text-foreground mb-3">🌍 SDG Alignment</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

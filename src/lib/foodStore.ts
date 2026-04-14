@@ -1,22 +1,21 @@
-/**
- * Simple in-memory store using React state via context.
- * Wraps sample data and provides CRUD operations.
- */
-
 import { createContext, useContext } from 'react';
-import { FoodItem, Distribution, UserRole } from './types';
-import { sampleFoodItems, sampleDistributions, sampleStats, sampleUsers } from './sampleData';
+import { TablesInsert, TablesUpdate, Tables } from '@/integrations/supabase/types';
+
+export type DbFoodItem = Tables<'food_items'>;
+export type DbDistribution = Tables<'distributions'>;
+export type UserRole = 'donor' | 'volunteer' | 'receiver' | 'admin';
 
 export interface FoodStore {
-  foodItems: FoodItem[];
-  distributions: Distribution[];
-  stats: typeof sampleStats;
+  foodItems: DbFoodItem[];
+  distributions: DbDistribution[];
   currentRole: UserRole;
   setCurrentRole: (role: UserRole) => void;
-  addFoodItem: (item: FoodItem) => void;
-  updateFoodItem: (id: string, updates: Partial<FoodItem>) => void;
-  addDistribution: (dist: Distribution) => void;
-  updateDistribution: (id: string, updates: Partial<Distribution>) => void;
+  addFoodItem: (item: TablesInsert<'food_items'>) => Promise<void>;
+  updateFoodItem: (id: string, updates: TablesUpdate<'food_items'>) => Promise<void>;
+  addDistribution: (dist: TablesInsert<'distributions'>) => Promise<void>;
+  updateDistribution: (id: string, updates: TablesUpdate<'distributions'>) => Promise<void>;
+  refreshData: () => Promise<void>;
+  loading: boolean;
 }
 
 export const FoodStoreContext = createContext<FoodStore | null>(null);
@@ -26,5 +25,3 @@ export function useFoodStore() {
   if (!ctx) throw new Error('useFoodStore must be used within FoodStoreProvider');
   return ctx;
 }
-
-export { sampleFoodItems, sampleDistributions, sampleStats, sampleUsers };
