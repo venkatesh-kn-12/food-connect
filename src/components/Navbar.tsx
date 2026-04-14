@@ -22,24 +22,12 @@ export default function Navbar() {
           <div className="w-8 h-8 rounded-lg gradient-hero flex items-center justify-center">
             <Leaf className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="font-bold text-lg text-foreground">SFRS</span>
+          <span className="font-bold text-lg text-foreground">FeedForward</span>
         </div>
 
-        <div className="hidden md:flex items-center gap-1 bg-muted rounded-lg p-1">
-          {(Object.keys(roleConfig) as UserRole[]).map((role) => (
-            <button
-              key={role}
-              onClick={() => setCurrentRole(role)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                currentRole === role
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {roleConfig[role].icon}
-              {roleConfig[role].label}
-            </button>
-          ))}
+        <div className="hidden md:flex items-center gap-1 bg-muted rounded-lg p-1 px-3 py-1.5 transition-all bg-primary text-primary-foreground shadow-sm">
+          {roleConfig[currentRole]?.icon}
+          <span className="ml-2 font-medium text-sm">{roleConfig[currentRole]?.label} Portal</span>
         </div>
 
         <div className="hidden md:flex items-center gap-3">
@@ -56,20 +44,10 @@ export default function Navbar() {
 
       {menuOpen && (
         <div className="md:hidden border-t border-border px-4 py-2 bg-card space-y-1">
-          {(Object.keys(roleConfig) as UserRole[]).map((role) => (
-            <button
-              key={role}
-              onClick={() => { setCurrentRole(role); setMenuOpen(false); }}
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium ${
-                currentRole === role
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-muted'
-              }`}
-            >
-              {roleConfig[role].icon}
-              {roleConfig[role].label}
-            </button>
-          ))}
+          <div className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground mb-2">
+            {roleConfig[currentRole]?.icon}
+            {roleConfig[currentRole]?.label} Portal
+          </div>
           <button onClick={() => signOut()}
             className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted">
             <LogOut className="w-4 h-4" /> Sign Out

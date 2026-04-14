@@ -2,14 +2,21 @@ import { useFoodStore } from '@/lib/foodStore';
 import StatsCard from '@/components/StatsCard';
 import { CategoryBadge, StatusBadge } from '@/components/Badges';
 import { motion } from 'framer-motion';
-import { Users, Truck, Heart, Leaf, Zap, BarChart3, ShieldCheck, Recycle } from 'lucide-react';
+import { Users, Truck, Heart, Leaf, Zap, BarChart3, ShieldCheck, Recycle, CheckCircle } from 'lucide-react';
 
 export default function AdminPage() {
   const { foodItems, distributions } = useFoodStore();
 
   const totalQuantity = foodItems.reduce((s, f) => s + f.quantity, 0);
   const humanItems = foodItems.filter(f => f.category === 'human-consumption');
-  const peopleFed = humanItems.filter(f => f.status === 'delivered' || f.status === 'completed').reduce((s, f) => s + f.quantity, 0);
+  
+  // Harmonized logic: Count quantity from items that are in a 'delivered' distribution
+  const peopleFed = distributions
+    .filter(d => d.status === 'delivered')
+    .reduce((sum, d) => {
+      const food = foodItems.find(f => f.id === d.food_id);
+      return sum + (food?.quantity || 0);
+    }, 0);
 
   const categoryBreakdown = {
     human: humanItems.length,
@@ -81,7 +88,13 @@ export default function AdminPage() {
                   <td className="py-3 text-muted-foreground">{item.donor_name}</td>
                   <td className="py-3 text-muted-foreground">{item.quantity}</td>
                   <td className="py-3"><CategoryBadge category={item.category} /></td>
-                  <td className="py-3"><StatusBadge status={item.status} /></td>
+                  <td className="py-3">
+                    {/* Look up distribution status if it exists */}
+                    {(() => {
+                      const dist = distributions.find(d => d.food_id === item.id);
+                      return <StatusBadge status={dist ? dist.status : item.status} />;
+                    })()}
+                  </td>
                   <td className="py-3">
                     <div className="flex items-center gap-2">
                       <div className="w-16 h-2 rounded-full bg-muted overflow-hidden">

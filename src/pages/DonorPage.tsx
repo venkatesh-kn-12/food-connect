@@ -17,6 +17,7 @@ export default function DonorPage() {
 
   const [foodName, setFoodName] = useState('');
   const [quantity, setQuantity] = useState(1);
+  const [location, setLocation] = useState('');
   const [foodType, setFoodType] = useState<'veg' | 'non-veg'>('veg');
   const [hoursSince, setHoursSince] = useState(1);
   const [storage, setStorage] = useState<'refrigerated' | 'room-temp' | 'frozen'>('refrigerated');
@@ -39,7 +40,7 @@ export default function DonorPage() {
         food_type: foodType,
         time_prepared: new Date(now.getTime() - hoursSince * 3600000).toISOString(),
         expiry_estimate: new Date(now.getTime() + 12 * 3600000).toISOString(),
-        location: 'Downtown',
+        location: location || 'Unknown',
         category: seg.category as any,
         status: 'categorized',
         safety_score: seg.safetyScore,
@@ -48,6 +49,7 @@ export default function DonorPage() {
       });
       setFoodName('');
       setQuantity(1);
+      setLocation('');
       setHoursSince(1);
       toast({ title: 'Food submitted successfully!' });
     } catch (err: any) {
@@ -94,6 +96,11 @@ export default function DonorPage() {
               <label className="block text-sm font-medium text-foreground mb-1">Quantity (servings)</label>
               <input type="number" min={1} value={quantity} onChange={e => setQuantity(+e.target.value)}
                 className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">Location (Address/Area)</label>
+              <input value={location} onChange={e => setLocation(e.target.value)} required
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" placeholder="e.g. 123 Main St" />
             </div>
             <div>
               <label className="block text-sm font-medium text-foreground mb-1">Food Type</label>

@@ -67,25 +67,25 @@ export function categorizeFoodItem(input: SegregationInput): SegregationResult {
     return {
       category: 'human-consumption',
       safetyScore,
-      reason: 'Food is fresh and safe for human consumption.',
+      reason: 'Food is fresh or medium fresh.',
     };
   } else if (safetyScore >= 45) {
     return {
       category: 'animal-feed',
       safetyScore,
-      reason: 'Food is past its prime for humans but safe for animal consumption.',
+      reason: 'Food is below medium quality.',
     };
   } else if (safetyScore >= 20) {
     return {
       category: 'biogas',
       safetyScore,
-      reason: 'Food is decomposing and suitable for biogas production.',
+      reason: 'Food is in the completely worst state.',
     };
   } else {
     return {
       category: 'compost',
       safetyScore,
-      reason: 'Food waste is best used for composting or recycling.',
+      reason: 'Food waste is in the completely worst state.',
     };
   }
 }
@@ -94,12 +94,12 @@ export function categorizeFoodItem(input: SegregationInput): SegregationResult {
 export function getCategoryInfo(category: FoodCategory) {
   switch (category) {
     case 'human-consumption':
-      return { label: 'Human Consumption', color: 'bg-primary text-primary-foreground', icon: '🍽️' };
+      return { label: 'Suitable for humans', color: 'bg-primary text-primary-foreground', icon: '🍽️' };
     case 'animal-feed':
-      return { label: 'Animal Feed', color: 'bg-warning text-secondary-foreground', icon: '🐄' };
+      return { label: 'Suitable for animals', color: 'bg-warning text-secondary-foreground', icon: '🐄' };
     case 'biogas':
-      return { label: 'Biogas Production', color: 'bg-biogas text-primary-foreground', icon: '⚡' };
+      return { label: 'Suitable for bio gas', color: 'bg-biogas text-primary-foreground', icon: '⚡' };
     case 'compost':
-      return { label: 'Compost / Recycling', color: 'bg-compost text-primary-foreground', icon: '♻️' };
+      return { label: 'Suitable for bio gas', color: 'bg-compost text-primary-foreground', icon: '♻️' };
   }
 }

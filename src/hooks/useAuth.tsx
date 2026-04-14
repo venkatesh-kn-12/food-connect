@@ -6,8 +6,9 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, name: string) => Promise<void>;
+  signUp: (email: string, password: string, name: string, role: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
+  loginAsDemo: (role: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -34,11 +35,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, name: string) => {
+  const signUp = async (email: string, password: string, name: string, role: string) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name } },
+      options: { data: { name, role } },
     });
     if (error) throw error;
   };
@@ -48,13 +49,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   };
 
+  const loginAsDemo = async (role: string) => {
+    const email = `${role}_demo@sfrs.com`;
+    const password = 'demo_password123';
+    try {
+      await signIn(email, password);
+    } catch (err: any) {
+      if (err.message.toLowerCase().includes('invalid login credentials') || err.status === 400) {
+        await signUp(email, password, `Demo ${role.charAt(0).toUpperCase() + role.slice(1)}`, role);
+      } else {
+        throw err;
+      }
+    }
+  };
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, loginAsDemo, signOut }}>
       {children}
     </AuthContext.Provider>
   );

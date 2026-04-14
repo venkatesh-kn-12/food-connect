@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { FoodStoreProvider } from "@/components/FoodStoreProvider";
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
+import RoleGateway from "./pages/RoleGateway";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,16 +24,14 @@ function AppRoutes() {
   }
 
   if (!user) {
-    return <AuthPage />;
+    return <RoleGateway />;
   }
 
   return (
-    <FoodStoreProvider>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </FoodStoreProvider>
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
 
@@ -42,9 +41,11 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AuthProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
+        <FoodStoreProvider>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </FoodStoreProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
