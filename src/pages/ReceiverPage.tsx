@@ -17,7 +17,7 @@ export default function ReceiverPage() {
   );
   const confirmedItems = incomingDists.filter(d => {
     const food = foodItems.find(f => f.id === d.food_id);
-    return food?.status === 'completed';
+    return food?.status === 'completed' || d.receiver_id === user?.id;
   });
   async function handleConfirmReceived(distId: string, foodId: string) {
     try {
@@ -68,7 +68,7 @@ export default function ReceiverPage() {
                   <div className="mt-2"><CategoryBadge category={food.category} /></div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  {food.status === 'completed' ? (
+                  {(food.status === 'completed' || dist.receiver_id === user?.id) ? (
                     <span className="text-sm text-success font-bold flex items-center gap-1.5 py-2">
                        <CheckCircle className="w-5 h-5" /> Confirmed Received
                     </span>

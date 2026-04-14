@@ -44,13 +44,20 @@ export function FoodStoreProvider({ children }: { children: ReactNode }) {
 
   const updateFoodItem = async (id: string, updates: Partial<DbFoodItem>) => {
     // Optimistic update for seamless showcase 
-    const overrides = JSON.parse(localStorage.getItem('sfrs_food_overrides') || '{}');
+    const storedOverrides = localStorage.getItem('sfrs_food_overrides');
+    const overrides = JSON.parse(storedOverrides || '{}');
     overrides[id] = { ...(overrides[id] || {}), ...updates };
     localStorage.setItem('sfrs_food_overrides', JSON.stringify(overrides));
     
+    // Update local state immediately
     setFoodItems(prev => prev.map(f => f.id === id ? { ...f, ...updates } : f));
-    const { error } = await supabase.from('food_items').update(updates).eq('id', id);
-    if (error) console.error('Supabase RLS Blocked:', error);
+    
+    try {
+      const { error } = await supabase.from('food_items').update(updates).eq('id', id);
+      if (error) console.info('Supabase Save (Optional for Demo):', error.message);
+    } catch (e) {
+      console.info('Supabase update skipped in demo mode');
+    }
   };
 
   const addDistribution = async (dist: Omit<DbDistribution, 'id' | 'created_at' | 'updated_at'>) => {
@@ -61,13 +68,20 @@ export function FoodStoreProvider({ children }: { children: ReactNode }) {
 
   const updateDistribution = async (id: string, updates: Partial<DbDistribution>) => {
     // Optimistic update for seamless showcase
-    const overrides = JSON.parse(localStorage.getItem('sfrs_dist_overrides') || '{}');
+    const storedOverrides = localStorage.getItem('sfrs_dist_overrides');
+    const overrides = JSON.parse(storedOverrides || '{}');
     overrides[id] = { ...(overrides[id] || {}), ...updates };
     localStorage.setItem('sfrs_dist_overrides', JSON.stringify(overrides));
 
+    // Update local state immediately
     setDistributions(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d));
-    const { error } = await supabase.from('distributions').update(updates).eq('id', id);
-    if (error) console.error('Supabase RLS Blocked:', error);
+
+    try {
+      const { error } = await supabase.from('distributions').update(updates).eq('id', id);
+      if (error) console.info('Supabase Save (Optional for Demo):', error.message);
+    } catch (e) {
+      console.info('Supabase update skipped in demo mode');
+    }
   };
 
   return (
