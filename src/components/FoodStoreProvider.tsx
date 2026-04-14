@@ -17,12 +17,10 @@ export function FoodStoreProvider({ children }: { children: ReactNode }) {
       supabase.from('distributions').select('*').order('created_at', { ascending: false }),
     ]);
     if (foodRes.data) {
-      const overrides = JSON.parse(localStorage.getItem('sfrs_food_overrides') || '{}');
-      setFoodItems(foodRes.data.map(f => overrides[f.id] ? { ...f, ...overrides[f.id] } : f));
+      setFoodItems(foodRes.data);
     }
     if (distRes.data) {
-      const distOverrides = JSON.parse(localStorage.getItem('sfrs_dist_overrides') || '{}');
-      setDistributions(distRes.data.map(d => distOverrides[d.id] ? { ...d, ...distOverrides[d.id] } : d));
+      setDistributions(distRes.data);
     }
     setLoading(false);
   }, []);
@@ -43,14 +41,16 @@ export function FoodStoreProvider({ children }: { children: ReactNode }) {
   };
 
   const updateFoodItem = async (id: string, updates: Partial<DbFoodItem>) => {
-    // Optimistic update for seamless showcase 
-    const overrides = JSON.parse(localStorage.getItem('sfrs_food_overrides') || '{}');
-    overrides[id] = { ...(overrides[id] || {}), ...updates };
-    localStorage.setItem('sfrs_food_overrides', JSON.stringify(overrides));
-    
+    // Optimistic update
     setFoodItems(prev => prev.map(f => f.id === id ? { ...f, ...updates } : f));
+    
     const { error } = await supabase.from('food_items').update(updates).eq('id', id);
-    if (error) console.error('Supabase RLS Blocked:', error);
+    if (error) {
+      console.error('Supabase Update Error:', error.message);
+      // Revert on error
+      await refreshData();
+      throw error;
+    }
   };
 
   const addDistribution = async (dist: Omit<DbDistribution, 'id' | 'created_at' | 'updated_at'>) => {
@@ -60,14 +60,16 @@ export function FoodStoreProvider({ children }: { children: ReactNode }) {
   };
 
   const updateDistribution = async (id: string, updates: Partial<DbDistribution>) => {
-    // Optimistic update for seamless showcase
-    const overrides = JSON.parse(localStorage.getItem('sfrs_dist_overrides') || '{}');
-    overrides[id] = { ...(overrides[id] || {}), ...updates };
-    localStorage.setItem('sfrs_dist_overrides', JSON.stringify(overrides));
-
+    // Optimistic update
     setDistributions(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d));
+
     const { error } = await supabase.from('distributions').update(updates).eq('id', id);
-    if (error) console.error('Supabase RLS Blocked:', error);
+    if (error) {
+      console.error('Supabase Update Error:', error.message);
+      // Revert on error
+      await refreshData();
+      throw error;
+    }
   };
 
   return (
