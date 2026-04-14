@@ -1,5 +1,8 @@
 import { getCategoryInfo } from '@/lib/smartSegregation';
-import { FoodCategory, FoodStatus } from '@/lib/types';
+import { Enums } from '@/integrations/supabase/types';
+
+type FoodCategory = Enums<'food_category'>;
+type FoodStatus = Enums<'food_status'>;
 
 export function CategoryBadge({ category }: { category: FoodCategory }) {
   const info = getCategoryInfo(category);
