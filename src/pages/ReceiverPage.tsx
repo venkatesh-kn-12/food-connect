@@ -1,31 +1,40 @@
 import { useFoodStore } from '@/lib/foodStore';
+import { useAuth } from '@/hooks/useAuth';
 import { CategoryBadge } from '@/components/Badges';
 import StatsCard from '@/components/StatsCard';
 import { Heart, CheckCircle, Package } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ReceiverPage() {
   const { foodItems, distributions, updateFoodItem, updateDistribution } = useFoodStore();
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  const incomingDists = distributions.filter(d => d.receiverId === 'rec-1' || d.receiverName === 'Hope Shelter');
+  const incomingDists = distributions.filter(d => d.receiver_id === user?.id || d.receiver_name === 'Hope Shelter');
   const deliveredItems = incomingDists.filter(d => d.status === 'delivered');
 
-  function handleConfirmReceived(distId: string, foodId: string) {
-    updateDistribution(distId, { status: 'delivered' });
-    updateFoodItem(foodId, { status: 'completed' });
+  async function handleConfirmReceived(distId: string, foodId: string) {
+    try {
+      await updateDistribution(distId, { status: 'delivered' });
+      await updateFoodItem(foodId, { status: 'completed' });
+      toast({ title: 'Delivery confirmed!' });
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    }
   }
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Receiver Portal</h1>
-        <p className="text-muted-foreground text-sm">Hope Shelter — View & accept incoming food deliveries</p>
+        <p className="text-muted-foreground text-sm">View & accept incoming food deliveries</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatsCard title="Incoming Deliveries" value={incomingDists.length} icon={<Package className="w-5 h-5 text-primary" />} />
         <StatsCard title="Received" value={deliveredItems.length} icon={<CheckCircle className="w-5 h-5 text-success" />} accent="bg-success/10" />
         <StatsCard title="People Fed" value={deliveredItems.reduce((sum, d) => {
-          const food = foodItems.find(f => f.id === d.foodId);
+          const food = foodItems.find(f => f.id === d.food_id);
           return sum + (food?.quantity || 0);
         }, 0)} icon={<Heart className="w-5 h-5 text-destructive" />} accent="bg-destructive/10" />
       </div>
@@ -36,14 +45,14 @@ export default function ReceiverPage() {
           <p className="text-muted-foreground text-sm">No incoming deliveries.</p>
         ) : (
           incomingDists.map((dist) => {
-            const food = foodItems.find(f => f.id === dist.foodId);
+            const food = foodItems.find(f => f.id === dist.food_id);
             if (!food) return null;
             return (
               <div key={dist.id} className="bg-card rounded-xl p-4 shadow-card border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <p className="font-semibold text-foreground">{food.foodName}</p>
+                  <p className="font-semibold text-foreground">{food.food_name}</p>
                   <p className="text-xs text-muted-foreground">
-                    From: {food.donorName} • Via: {dist.volunteerName} • {food.quantity} servings
+                    From: {food.donor_name} • Via: {dist.volunteer_name} • {food.quantity} servings
                   </p>
                   <div className="mt-2"><CategoryBadge category={food.category} /></div>
                 </div>
