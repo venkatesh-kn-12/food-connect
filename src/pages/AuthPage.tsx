@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useFoodStore, UserRole } from '@/lib/foodStore';
 import { Leaf } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function AuthPage() {
   const { signIn, signUp } = useAuth();
+  const { setCurrentRole } = useFoodStore();
   const { toast } = useToast();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -18,10 +20,12 @@ export default function AuthPage() {
     try {
       if (isLogin) {
         await signIn(email, password);
-        toast({ title: 'Welcome back!' });
+        setCurrentRole('admin');
+        toast({ title: 'Welcome back, Admin!' });
       } else {
-        await signUp(email, password, name);
-        toast({ title: 'Account created!', description: 'Check your email to confirm your account.' });
+        await signUp(email, password, name, 'admin');
+        setCurrentRole('admin');
+        toast({ title: 'Admin account created!', description: 'Check your email to confirm your account.' });
       }
     } catch (err: any) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
@@ -37,15 +41,15 @@ export default function AuthPage() {
           <div className="w-10 h-10 rounded-xl gradient-hero flex items-center justify-center">
             <Leaf className="w-6 h-6 text-primary-foreground" />
           </div>
-          <span className="font-bold text-2xl text-foreground">SFRS</span>
+          <span className="font-bold text-2xl text-foreground">FeedForward</span>
         </div>
 
         <div className="bg-card rounded-xl p-6 shadow-card border border-border">
           <h2 className="text-xl font-bold text-foreground mb-1">
-            {isLogin ? 'Sign In' : 'Create Account'}
+            {isLogin ? 'Admin Sign In' : 'Create Admin'}
           </h2>
           <p className="text-sm text-muted-foreground mb-6">
-            {isLogin ? 'Welcome back to Smart Food Redistribution' : 'Join the fight against food waste'}
+            {isLogin ? 'Login to manage the Smart Food Redistribution system' : 'Create an administrative account'}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
