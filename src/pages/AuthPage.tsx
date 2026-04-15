@@ -5,28 +5,20 @@ import { Leaf } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function AuthPage() {
-  const { signIn, signUp } = useAuth();
+  const { signIn } = useAuth();
   const { setCurrentRole } = useFoodStore();
   const { toast } = useToast();
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      if (isLogin) {
-        await signIn(email, password);
-        setCurrentRole('admin');
-        toast({ title: 'Welcome back, Admin!' });
-      } else {
-        await signUp(email, password, name, 'admin');
-        setCurrentRole('admin');
-        toast({ title: 'Admin account created!', description: 'Check your email to confirm your account.' });
-      }
+      await signIn(email, password);
+      setCurrentRole('admin');
+      toast({ title: 'Welcome back, Admin!' });
     } catch (err: any) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
     } finally {
@@ -45,24 +37,12 @@ export default function AuthPage() {
         </div>
 
         <div className="bg-card rounded-xl p-6 shadow-card border border-border">
-          <h2 className="text-xl font-bold text-foreground mb-1">
-            {isLogin ? 'Admin Sign In' : 'Create Admin'}
-          </h2>
+          <h2 className="text-xl font-bold text-foreground mb-1">Admin Sign In</h2>
           <p className="text-sm text-muted-foreground mb-6">
-            {isLogin ? 'Login to manage the Smart Food Redistribution system' : 'Create an administrative account'}
+            Login to manage the Smart Food Redistribution system
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Full Name</label>
-                <input
-                  value={name} onChange={e => setName(e.target.value)} required
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
-                  placeholder="Your name"
-                />
-              </div>
-            )}
             <div>
               <label className="block text-sm font-medium text-foreground mb-1">Email</label>
               <input
@@ -83,16 +63,9 @@ export default function AuthPage() {
               type="submit" disabled={loading}
               className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition disabled:opacity-50"
             >
-              {loading ? 'Loading...' : isLogin ? 'Sign In' : 'Create Account'}
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
-
-          <p className="text-sm text-center text-muted-foreground mt-4">
-            {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
-            <button onClick={() => setIsLogin(!isLogin)} className="text-primary font-medium hover:underline">
-              {isLogin ? 'Sign Up' : 'Sign In'}
-            </button>
-          </p>
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
