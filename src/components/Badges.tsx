@@ -6,11 +6,38 @@ type FoodStatus = Enums<'food_status'>;
 type DistributionStatus = Enums<'distribution_status'>;
 type AnyStatus = FoodStatus | DistributionStatus;
 
-export function CategoryBadge({ category }: { category: FoodCategory }) {
+interface CategoryBadgeProps {
+  category:          FoodCategory;
+  /** If provided, shows a downgrade warning pulse when live !== original */
+  originalCategory?: FoodCategory;
+  safetyScore?:      number;
+}
+
+const CATEGORY_ORDER: FoodCategory[] = ['compost', 'biogas', 'animal-feed', 'human-consumption'];
+
+export function CategoryBadge({ category, originalCategory, safetyScore }: CategoryBadgeProps) {
   const info = getCategoryInfo(category);
+
+  const hasDegraded =
+    originalCategory !== undefined &&
+    CATEGORY_ORDER.indexOf(category) < CATEGORY_ORDER.indexOf(originalCategory);
+
   return (
-    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${info.color}`}>
+    <span
+      className={[
+        'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold',
+        info.color,
+        hasDegraded ? 'ring-2 ring-offset-1 ring-orange-400 animate-pulse' : '',
+      ].join(' ')}
+      title={hasDegraded ? `⚠️ Downgraded from ${originalCategory} due to spoilage` : undefined}
+    >
       {info.icon} {info.label}
+      {safetyScore !== undefined && (
+        <span className="ml-1 opacity-75 font-normal">{safetyScore}%</span>
+      )}
+      {hasDegraded && (
+        <span className="ml-0.5 text-orange-300 text-[10px]">▼</span>
+      )}
     </span>
   );
 }
@@ -28,7 +55,9 @@ const statusColors: Record<string, string> = {
 
 export function StatusBadge({ status }: { status: AnyStatus }) {
   return (
-    <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${statusColors[status] || 'bg-muted text-muted-foreground'}`}>
+    <span
+      className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${statusColors[status] || 'bg-muted text-muted-foreground'}`}
+    >
       {status.replace('-', ' ')}
     </span>
   );

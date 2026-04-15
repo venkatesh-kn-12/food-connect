@@ -47,7 +47,7 @@ export default function RoleGateway() {
             Smart Food Redistribution
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Select an operational role below to instantly explore the dashboard payload. No sign up required for demonstration.
+            Select an operational role below to instantly explore the dashboard payload.
           </p>
         </div>
 
@@ -100,12 +100,26 @@ export default function RoleGateway() {
 
         <div className="pt-10 flex flex-col items-center justify-center space-y-4">
           <div className="h-px bg-border w-1/2"></div>
-          <button 
-            onClick={() => setShowAdminLogin(true)}
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
-          >
-            Administrative Sign-In 
-          </button>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setShowAdminLogin(true)}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
+            >
+              Administrative Sign-In 
+            </button>
+            <span className="text-muted-foreground text-sm">•</span>
+            <button 
+              onClick={() => {
+                localStorage.removeItem('sfrs_food_overrides');
+                localStorage.removeItem('sfrs_dist_overrides');
+                localStorage.setItem('sfrs_db_wipe_timestamp', Date.now().toString());
+                window.location.reload();
+              }}
+              className="text-sm font-medium text-destructive hover:text-destructive/80 transition-colors underline underline-offset-4"
+            >
+              Force Wipe Database
+            </button>
+          </div>
         </div>
       </div>
     </div>

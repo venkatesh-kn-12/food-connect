@@ -72,6 +72,8 @@ export type Database = {
           donor_name: string
           expiry_estimate: string
           food_name: string
+          food_risk_level: Database["public"]["Enums"]["food_risk_level"]
+          food_subtype: string
           food_type: Database["public"]["Enums"]["food_type"]
           id: string
           image_url: string | null
@@ -91,6 +93,8 @@ export type Database = {
           donor_name?: string
           expiry_estimate?: string
           food_name: string
+          food_risk_level?: Database["public"]["Enums"]["food_risk_level"]
+          food_subtype?: string
           food_type?: Database["public"]["Enums"]["food_type"]
           id?: string
           image_url?: string | null
@@ -110,6 +114,8 @@ export type Database = {
           donor_name?: string
           expiry_estimate?: string
           food_name?: string
+          food_risk_level?: Database["public"]["Enums"]["food_risk_level"]
+          food_subtype?: string
           food_type?: Database["public"]["Enums"]["food_type"]
           id?: string
           image_url?: string | null
@@ -192,6 +198,7 @@ export type Database = {
       app_role: "donor" | "volunteer" | "receiver" | "admin"
       distribution_status: "pending" | "picked-up" | "in-transit" | "delivered"
       food_category: "human-consumption" | "animal-feed" | "biogas" | "compost"
+      food_risk_level: "high-risk" | "medium-risk" | "low-risk"
       food_status:
         | "submitted"
         | "categorized"
@@ -331,6 +338,7 @@ export const Constants = {
       app_role: ["donor", "volunteer", "receiver", "admin"],
       distribution_status: ["pending", "picked-up", "in-transit", "delivered"],
       food_category: ["human-consumption", "animal-feed", "biogas", "compost"],
+      food_risk_level: ["high-risk", "medium-risk", "low-risk"],
       food_status: [
         "submitted",
         "categorized",

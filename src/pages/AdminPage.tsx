@@ -1,8 +1,10 @@
 import { useFoodStore } from '@/lib/foodStore';
 import StatsCard from '@/components/StatsCard';
 import { CategoryBadge, StatusBadge } from '@/components/Badges';
+import { getFoodSubtype, RISK_LEVEL_META } from '@/lib/smartSegregation';
+import PredictionTimer from '@/components/PredictionTimer';
 import { motion } from 'framer-motion';
-import { Users, Truck, Heart, Leaf, Zap, BarChart3, ShieldCheck, Recycle, CheckCircle } from 'lucide-react';
+import { Users, Truck, Heart, Leaf, Zap, BarChart3, ShieldCheck, Recycle } from 'lucide-react';
 
 export default function AdminPage() {
   const { foodItems, distributions } = useFoodStore();
@@ -25,6 +27,8 @@ export default function AdminPage() {
     compost: foodItems.filter(f => f.category === 'compost').length,
   };
 
+  const iotItems = foodItems.filter(f => f.donor_name?.startsWith('Smart Box'));
+
   return (
     <div className="space-y-6">
       <div>
@@ -44,6 +48,7 @@ export default function AdminPage() {
         <StatsCard title="Food Items" value={foodItems.length} icon={<Users className="w-5 h-5 text-primary" />} />
         <StatsCard title="Distributions" value={distributions.length} icon={<Truck className="w-5 h-5 text-info" />} accent="bg-info/10" />
         <StatsCard title="Delivered" value={distributions.filter(d => d.status === 'delivered').length} icon={<ShieldCheck className="w-5 h-5 text-success" />} accent="bg-success/10" />
+        <StatsCard title="🤖 IoT Deposits" value={iotItems.length} icon={<span className="text-lg">📦</span>} accent="bg-biogas/10" description="Auto-detected" />
       </div>
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
@@ -77,34 +82,78 @@ export default function AdminPage() {
                 <th className="pb-2 font-medium">Donor</th>
                 <th className="pb-2 font-medium">Qty</th>
                 <th className="pb-2 font-medium">Category</th>
+                <th className="pb-2 font-medium">Assigned Org</th>
                 <th className="pb-2 font-medium">Status</th>
                 <th className="pb-2 font-medium">Safety</th>
               </tr>
             </thead>
             <tbody>
-              {foodItems.map(item => (
+              {foodItems.map(item => {
+                const dist = distributions.find(d => d.food_id === item.id);
+                const currentStatus = dist ? dist.status : item.status;
+                const isDelivered = currentStatus === 'delivered';
+                
+                return (
                 <tr key={item.id} className="border-b border-border/50">
-                  <td className="py-3 font-medium text-foreground">{item.food_name}</td>
+                  <td className="py-3 font-medium text-foreground">
+                    <span className="mr-1">{getFoodSubtype((item as any).food_subtype ?? 'other').emoji}</span>
+                    {item.food_name}
+                    {item.donor_name?.startsWith('Smart Box') && (
+                      <span className="ml-1.5 text-xs font-bold bg-biogas/20 text-biogas border border-biogas/30 px-1.5 py-0.5 rounded-full">
+                        🤖 IoT
+                      </span>
+                    )}
+                  </td>
                   <td className="py-3 text-muted-foreground">{item.donor_name}</td>
                   <td className="py-3 text-muted-foreground">{item.quantity}</td>
-                  <td className="py-3"><CategoryBadge category={item.category} /></td>
+                  <td className="py-3">
+                    <div className="flex items-center gap-1.5">
+                      <CategoryBadge category={item.category} safetyScore={item.safety_score} />
+                      <div className="flex flex-col gap-1.5 mt-1">
+                        <span className={`text-xs w-max ${RISK_LEVEL_META[getFoodSubtype((item as any).food_subtype ?? 'other').riskLevel]?.color ?? ''}`}>
+                          {RISK_LEVEL_META[getFoodSubtype((item as any).food_subtype ?? 'other').riskLevel]?.emoji} {RISK_LEVEL_META[getFoodSubtype((item as any).food_subtype ?? 'other').riskLevel]?.label}
+                        </span>
+                        {!isDelivered && (
+                          <PredictionTimer 
+                             timePrepared={item.time_prepared}
+                             storageCondition={item.storage_condition as any}
+                             temperature={item.temperature}
+                             foodSubtypeId={(item as any).food_subtype ?? 'other'}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-3">
+                    {dist?.receiver_name ? (
+                      <span className="text-xs font-medium text-foreground bg-accent px-2 py-1 rounded-md">
+                        {dist.receiver_name.replace('Org ', '')}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground italic">Unassigned</span>
+                    )}
+                  </td>
                   <td className="py-3">
                     {/* Look up distribution status if it exists */}
-                    {(() => {
-                      const dist = distributions.find(d => d.food_id === item.id);
-                      return <StatusBadge status={dist ? dist.status : item.status} />;
-                    })()}
+                    <StatusBadge status={currentStatus} />
                   </td>
                   <td className="py-3">
                     <div className="flex items-center gap-2">
                       <div className="w-16 h-2 rounded-full bg-muted overflow-hidden">
-                        <div className="h-full rounded-full bg-primary" style={{ width: `${item.safety_score}%` }} />
+                        <div
+                          className={`h-full rounded-full ${
+                            item.safety_score >= 60 ? 'bg-primary' :
+                            item.safety_score >= 38 ? 'bg-warning' :
+                            item.safety_score >= 18 ? 'bg-biogas' : 'bg-compost'
+                          }`}
+                          style={{ width: `${item.safety_score}%` }}
+                        />
                       </div>
                       <span className="text-xs text-muted-foreground">{item.safety_score}</span>
                     </div>
                   </td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
         </div>
