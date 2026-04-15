@@ -118,73 +118,42 @@ export function FoodStoreProvider({ children }: { children: ReactNode }) {
     };
   }, []); // no deps — uses ref for live data
 
-  // ─── IoT Local Proxy Polling ───────────────────────────────────
+  // ─── IoT Cloud Monitor (Direct Supabase) ──────────────────────
+  const [iotDistance, setIotDistance] = useState<number | null>(null);
+  const lastTriggeredRef = useRef<number>(0);
+
   useEffect(() => {
-    const IOT_POLL_INTERVAL_MS = 5000; // 5 seconds
+    const IOT_POLL_INTERVAL_MS = 3000; // 3 seconds for cloud polling
     
-    const pollIotServer = async () => {
+    const monitorCloudSensor = async () => {
       try {
-        const response = await fetch('http://localhost:3001/api/iot/status');
-        const data = await response.json();
-        
-        if (data.deposits && data.deposits.length > 0) {
-          const iotFoods: DbFoodItem[] = data.deposits.map((d: any) => {
-            // Run AI categorization on sensor data
-            const aiResult = categorizeFoodItem({
-              foodSubtypeId: 'other',
-              hoursSincePrepared: 0,
-              storageCondition: 'room-temp',
-              temperature: d.temperature,
-            });
+        // Fetch latest reading for Box-01
+        const { data, error } = await supabase
+          .from('sensor_data' as any)
+          .select('distance, created_at')
+          .eq('box_id', 'BOX-01')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
 
-            // Rule: IoT deposits are never for human consumption
-            let finalCategory = aiResult.category;
-            if (finalCategory === 'human-consumption') {
-              finalCategory = 'animal-feed'; // Downgrade to safest non-human option
-            }
+        if (error) {
+          if (error.code !== 'PGRST116') console.warn('[IoT Monitor] DB Error:', error.message);
+          return;
+        }
 
-            return {
-              id: d.id,
-              donor_id: 'iot-system',
-              donor_name: d.box_id,
-              food_name: 'IoT Box Deposit',
-              quantity: 10,
-              food_type: 'veg',
-              food_subtype: 'other',
-              category: finalCategory,
-              status: 'categorized',
-              safety_score: aiResult.safetyScore,
-              storage_condition: 'room-temp',
-              temperature: d.temperature,
-              location: d.location,
-              time_prepared: d.timestamp,
-              expiry_estimate: new Date(new Date(d.timestamp).getTime() + 4 * 3600000).toISOString(),
-              created_at: d.timestamp,
-              updated_at: d.timestamp,
-              image_url: null,
-              // Add custom field for sensor data display
-              humidity: d.humidity,
-              distance: d.distance
-            } as any;
-          });
-
-          setFoodItems(prev => {
-            const existingIds = new Set(prev.map(f => f.id));
-            const newItems = iotFoods.filter(f => !existingIds.has(f.id));
-            if (newItems.length === 0) return prev;
-            return [...newItems, ...prev]; // New IoT items at top
-          });
+        if (data) {
+          setIotDistance(data.distance);
         }
       } catch (e) {
-        // IoT server might be offline, ignore silently
+        // Ignore
       }
     };
 
-    const intervalId = setInterval(pollIotServer, IOT_POLL_INTERVAL_MS);
-    pollIotServer(); // Initial call
+    const intervalId = setInterval(monitorCloudSensor, IOT_POLL_INTERVAL_MS);
+    monitorCloudSensor();
     
     return () => clearInterval(intervalId);
-  }, []);
+  }, [refreshData]);
 
   const addFoodItem = async (item: Omit<DbFoodItem, 'id' | 'created_at' | 'updated_at'>) => {
     const { error } = await supabase.from('food_items').insert(item);
@@ -232,6 +201,7 @@ export function FoodStoreProvider({ children }: { children: ReactNode }) {
       updateDistribution,
       refreshData,
       loading,
+      iotDistance,
     }}>
       {children}
     </FoodStoreContext.Provider>

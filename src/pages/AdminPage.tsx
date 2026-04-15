@@ -5,6 +5,7 @@ import { getFoodSubtype, RISK_LEVEL_META } from '@/lib/smartSegregation';
 import PredictionTimer from '@/components/PredictionTimer';
 import { motion } from 'framer-motion';
 import { Users, Truck, Heart, Leaf, Zap, BarChart3, ShieldCheck, Recycle } from 'lucide-react';
+import { SmartFoodBin } from '@/components/SmartFoodBin';
 
 export default function AdminPage() {
   const { foodItems, distributions } = useFoodStore();
@@ -27,7 +28,7 @@ export default function AdminPage() {
     compost: foodItems.filter(f => f.category === 'compost').length,
   };
 
-  const iotItems = foodItems.filter(f => f.donor_name?.startsWith('Smart Box'));
+  const iotItems = foodItems.filter(f => f.donor_name?.includes('Smart'));
 
   return (
     <div className="space-y-6">
@@ -51,26 +52,30 @@ export default function AdminPage() {
         <StatsCard title="🤖 IoT Deposits" value={iotItems.length} icon={<span className="text-lg">📦</span>} accent="bg-biogas/10" description="Auto-detected" />
       </div>
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-        className="bg-card rounded-xl p-6 shadow-card border border-border">
-        <h2 className="font-semibold text-lg text-foreground mb-4 flex items-center gap-2">
-          <Recycle className="w-5 h-5 text-primary" /> Smart Segregation Breakdown
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { cat: 'human-consumption' as const, label: 'Human', count: categoryBreakdown.human, emoji: '🍽️', color: 'bg-primary/10 border-primary/20' },
-            { cat: 'animal-feed' as const, label: 'Animal Feed', count: categoryBreakdown.animal, emoji: '🐄', color: 'bg-warning/10 border-warning/20' },
-            { cat: 'biogas' as const, label: 'Biogas', count: categoryBreakdown.biogas, emoji: '⚡', color: 'bg-biogas/10 border-biogas/20' },
-            { cat: 'compost' as const, label: 'Compost', count: categoryBreakdown.compost, emoji: '♻️', color: 'bg-compost/10 border-compost/20' },
-          ].map(item => (
-            <div key={item.cat} className={`rounded-xl p-4 border ${item.color} text-center`}>
-              <span className="text-2xl">{item.emoji}</span>
-              <p className="text-2xl font-bold text-foreground mt-1">{item.count}</p>
-              <p className="text-xs text-muted-foreground">{item.label}</p>
-            </div>
-          ))}
-        </div>
-      </motion.div>
+      <div className="space-y-6">
+        <SmartFoodBin />
+
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          className="bg-card rounded-xl p-6 shadow-card border border-border">
+          <h2 className="font-semibold text-lg text-foreground mb-4 flex items-center gap-2">
+            <Recycle className="w-5 h-5 text-primary" /> Smart Segregation Breakdown
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { cat: 'human-consumption' as const, label: 'Human', count: categoryBreakdown.human, emoji: '🍽️', color: 'bg-primary/10 border-primary/20' },
+              { cat: 'animal-feed' as const, label: 'Animal Feed', count: categoryBreakdown.animal, emoji: '🐄', color: 'bg-warning/10 border-warning/20' },
+              { cat: 'biogas' as const, label: 'Biogas', count: categoryBreakdown.biogas, emoji: '⚡', color: 'bg-biogas/10 border-biogas/20' },
+              { cat: 'compost' as const, label: 'Compost', count: categoryBreakdown.compost, emoji: '♻️', color: 'bg-compost/10 border-compost/20' },
+            ].map(item => (
+              <div key={item.cat} className={`rounded-xl p-4 border ${item.color} text-center`}>
+                <span className="text-2xl">{item.emoji}</span>
+                <p className="text-2xl font-bold text-foreground mt-1">{item.count}</p>
+                <p className="text-xs text-muted-foreground">{item.label}</p>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
 
       <div className="bg-card rounded-xl p-6 shadow-card border border-border">
         <h2 className="font-semibold text-lg text-foreground mb-4">Recent Food Items</h2>
@@ -98,7 +103,7 @@ export default function AdminPage() {
                   <td className="py-3 font-medium text-foreground">
                     <span className="mr-1">{getFoodSubtype((item as any).food_subtype ?? 'other').emoji}</span>
                     {item.food_name}
-                    {item.donor_name?.startsWith('Smart Box') && (
+                    {item.donor_name?.includes('Smart') && (
                       <span className="ml-1.5 text-xs font-bold bg-biogas/20 text-biogas border border-biogas/30 px-1.5 py-0.5 rounded-full">
                         🤖 IoT
                       </span>

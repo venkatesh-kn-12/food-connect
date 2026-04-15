@@ -33,7 +33,7 @@ export default function AuthPage() {
           <div className="w-10 h-10 rounded-xl gradient-hero flex items-center justify-center">
             <Leaf className="w-6 h-6 text-primary-foreground" />
           </div>
-          <span className="font-bold text-2xl text-foreground">FeedForward</span>
+          <span className="font-bold text-2xl text-foreground text-center">Smart Food Redistribution</span>
         </div>
 
         <div className="bg-card rounded-xl p-6 shadow-card border border-border">

@@ -16,6 +16,7 @@ export interface FoodStore {
   updateDistribution: (id: string, updates: TablesUpdate<'distributions'>) => Promise<void>;
   refreshData: () => Promise<void>;
   loading: boolean;
+  iotDistance: number | null;
 }
 
 export const FoodStoreContext = createContext<FoodStore | null>(null);

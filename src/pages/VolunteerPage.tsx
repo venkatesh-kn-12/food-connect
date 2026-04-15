@@ -7,6 +7,8 @@ import StatsCard from '@/components/StatsCard';
 import { Truck, CheckCircle, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { autoAssignOrganization, RECEIVER_ORGANIZATIONS } from '@/lib/organizations';
+import { SmartFoodBin } from '@/components/SmartFoodBin';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function VolunteerPage() {
   const { foodItems, updateFoodItem, distributions, addDistribution, updateDistribution } = useFoodStore();
@@ -75,6 +77,46 @@ export default function VolunteerPage() {
         <StatsCard title="Total Completed" value={myCompletedDistributions.length}  icon={<CheckCircle className="w-5 h-5 text-success" />} accent="bg-success/10" />
       </div>
 
+      {/* ── HERO SMART BIN ── */}
+      <SmartFoodBin 
+        onPickup={async () => {
+          try {
+            // 1. Manually create the food item
+            const newIotItem = {
+              donor_id: user?.id,
+              donor_name: 'Smart Bin #01',
+              food_name: 'Automated IoT Deposit',
+              quantity: 5,
+              food_type: 'veg' as const,
+              location: 'Bangalore Hub',
+              category: 'animal-feed' as const,
+              status: 'categorized' as const,
+              safety_score: 45,
+              storage_condition: 'room-temp' as const,
+              temperature: 25,
+              time_prepared: new Date().toISOString(),
+              expiry_estimate: new Date(Date.now() + 6 * 3600000).toISOString(),
+            };
+
+            const { data, error } = await supabase
+              .from('food_items')
+              .insert(newIotItem)
+              .select('id')
+              .single();
+
+            if (error) throw error;
+
+            // 2. Immediately accept the pickup
+            if (data) {
+              await handleAcceptPickup(data.id, 'animal-feed');
+              toast({ title: 'Success!', description: 'IoT Bin claimed and assigned to you.' });
+            }
+          } catch (err: any) {
+            toast({ title: 'Error', description: err.message, variant: 'destructive' });
+          }
+        }} 
+      />
+
       <div className="space-y-6">
         {/* ── ACTIVE TASKS ── */}
         {myActiveDistributions.length > 0 && (
@@ -82,7 +124,6 @@ export default function VolunteerPage() {
             <h2 className="font-bold text-lg text-primary flex items-center gap-2">
               <Truck className="w-5 h-5" /> Your Active Deliveries
             </h2>
-
             {myActiveDistributions.map((dist) => {
               const item = foodItems.find(f => f.id === dist.food_id);
               if (!item) return null;
@@ -148,15 +189,20 @@ export default function VolunteerPage() {
 
         {/* ── OPEN PICKUPS ── */}
         <div className="space-y-3 pt-4 border-t border-border">
-          <h2 className="font-semibold text-lg text-foreground">Open Pickups</h2>
+          <div className="flex flex-col gap-1 mb-4">
+            <h2 className="font-semibold text-lg text-foreground">Other Open Pickups</h2>
+            <p className="text-xs text-muted-foreground italic">Manual donations nearby</p>
+          </div>
 
-          {unassignedItems.length === 0 ? (
-            <p className="text-muted-foreground text-sm py-4 italic">No new food matches currently available.</p>
+          {unassignedItems.filter(f => !f.donor_name?.includes('Smart')).length === 0 ? (
+            <p className="text-muted-foreground text-sm py-4 italic">No other donations currently available.</p>
           ) : (
-            unassignedItems.map((item) => {
-              const subtype  = getFoodSubtype((item as any).food_subtype ?? 'other');
-              const riskMeta = RISK_LEVEL_META[subtype.riskLevel];
-              const isIoT    = item.donor_name?.startsWith('Smart Box');
+            unassignedItems
+              .filter(f => !f.donor_name?.includes('Smart'))
+              .map((item) => {
+                const subtype  = getFoodSubtype((item as any).food_subtype ?? 'other');
+                const riskMeta = RISK_LEVEL_META[subtype.riskLevel];
+                const isIoT    = item.donor_name?.includes('Smart');
 
               return (
                 <div

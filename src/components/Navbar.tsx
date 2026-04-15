@@ -22,7 +22,7 @@ export default function Navbar() {
           <div className="w-8 h-8 rounded-lg gradient-hero flex items-center justify-center">
             <Leaf className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="font-bold text-lg text-foreground">FeedForward</span>
+          <span className="font-bold text-lg text-foreground">SFR</span>
         </div>
 
         <div className="hidden md:flex items-center gap-1 bg-muted rounded-lg p-1 px-3 py-1.5 transition-all bg-primary text-primary-foreground shadow-sm">
